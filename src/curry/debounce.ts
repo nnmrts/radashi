@@ -17,6 +17,10 @@ export interface DebounceFunction<TArgs extends any[] = any> {
    * `undefined` will be returned.
    */
   flush(...args: TArgs): void
+  /**
+   * The underlying function
+   */
+  readonly handler: (...args: TArgs) => void
 }
 
 /**
@@ -69,6 +73,7 @@ export function debounce<TArgs extends any[]>(
   }
 
   debounced.isPending = () => timeout !== undefined
+  debounced.handler = handler
 
   return debounced
 }
