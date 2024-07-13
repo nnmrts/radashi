@@ -40,21 +40,30 @@ describe('debounce', () => {
     expect(mockFunc).toHaveBeenCalledTimes(1)
   })
 
-  test('executes the function immediately when the flush method is called', () => {
-    func.flush()
-    expect(mockFunc).toHaveBeenCalledTimes(1)
-  })
+  describe('flush', () => {
+    test('only calls the function if the debounced function was called', () => {
+      runFunc3Times()
+      expect(mockFunc).toHaveBeenCalledTimes(0)
 
-  test('continues to debounce after flush is called', () => {
-    runFunc3Times()
-    expect(mockFunc).toHaveBeenCalledTimes(0)
-    func.flush()
-    expect(mockFunc).toHaveBeenCalledTimes(1)
-    func()
-    expect(mockFunc).toHaveBeenCalledTimes(1)
-    vi.advanceTimersByTime(delay + 10)
-    expect(mockFunc).toHaveBeenCalledTimes(2)
-    func.flush()
-    expect(mockFunc).toHaveBeenCalledTimes(3)
+      func.flush()
+      expect(mockFunc).toHaveBeenCalledTimes(1)
+      expect(func.isPending()).toBe(false)
+
+      func.flush()
+      expect(mockFunc).toHaveBeenCalledTimes(1)
+      expect(func.isPending()).toBe(false)
+    })
+    test('debouncing resumes after a flush', () => {
+      runFunc3Times()
+      expect(mockFunc).toHaveBeenCalledTimes(0)
+      func.flush()
+      expect(mockFunc).toHaveBeenCalledTimes(1)
+      expect(func.isPending()).toBe(false)
+
+      runFunc3Times()
+      expect(mockFunc).toHaveBeenCalledTimes(1)
+      vi.advanceTimersByTime(delay + 10)
+      expect(mockFunc).toHaveBeenCalledTimes(2)
+    })
   })
 })

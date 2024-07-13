@@ -12,7 +12,9 @@ export interface DebounceFunction<TArgs extends any[] = any> {
    */
   isPending(): boolean
   /**
-   * Runs the debounced function immediately
+   * If the debounced function is pending, it will be invoked
+   * immediately and the result will be returned. Otherwise,
+   * `undefined` will be returned.
    */
   flush(...args: TArgs): void
 }
@@ -25,7 +27,8 @@ export interface DebounceFunction<TArgs extends any[] = any> {
  * Debounced functions have these methods:
  *
  * - The `cancel` method cancels the debounced function.
- * - The `flush` method calls the underlying function immediately.
+ * - The `flush` method calls the underlying function immediately if it was
+ *   debounced, otherwise it does nothing.
  * - The `isPending` method checks if the debounced function is pending.
  *
  * @see https://radashi-org.github.io/reference/curry/debounce
@@ -57,7 +60,14 @@ export function debounce<TArgs extends any[]>(
     timeout = undefined
   }
 
-  debounced.flush = (...args: TArgs) => handler(...args)
+  debounced.flush = (...args) => {
+    if (timeout !== undefined) {
+      clearTimeout(timeout)
+      timeout = undefined
+      handler(...args)
+    }
+  }
+
   debounced.isPending = () => timeout !== undefined
 
   return debounced
