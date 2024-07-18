@@ -1,5 +1,3 @@
-import { matrix, matrixGet, matrixSet } from 'radashi'
-
 /**
  * Calculate the similarity between two strings using the Levenshtein
  * distance algorithm.
@@ -55,29 +53,33 @@ export function similarity(str1: string, str2: string): number {
     return length1
   }
 
-  const table = matrix(length1 + 1, length2 + 1, (row, column) =>
-    row === 0 ? column : column === 0 ? row : 0,
-  )
+  const numRows = length1 + 1
+  const numColumns = length2 + 1
 
-  for (let i = 1; i <= length1; i++) {
-    for (let j = 1; j <= length2; j++) {
-      matrixSet(
-        table,
-        i,
-        j,
-        Math.min(
-          // Cost of a deletion.
-          matrixGet(table, i - 1, j) + 1,
-          // Cost of an insertion.
-          matrixGet(table, i, j - 1) + 1,
-          // Cost of a substitution.
-          matrixGet(table, i - 1, j - 1) +
-            (str1[start + i - 1] === str2[start + j - 1] ? 0 : 1),
-        ),
+  const distances = new Array<number>(numRows * numColumns).fill(0)
+
+  for (let x = 1; x < numColumns; x++) {
+    distances[x] = x
+  }
+  for (let y = 1; y < numRows; y++) {
+    distances[y * numColumns] = y
+  }
+
+  for (let x = 1; x < numColumns; x++) {
+    for (let y = 1; y < numRows; y++) {
+      const i = y * numColumns + x
+      distances[i] = Math.min(
+        // Cost of a deletion.
+        distances[i - numColumns] + 1,
+        // Cost of an insertion.
+        distances[i - 1] + 1,
+        // Cost of a substitution.
+        distances[i - numColumns - 1] +
+          (str1[start + y - 1] === str2[start + x - 1] ? 0 : 1),
       )
     }
   }
 
   // Return the Levenshtein distance
-  return matrixGet(table, length1, length2)
+  return distances[length1 * numColumns + length2]
 }
